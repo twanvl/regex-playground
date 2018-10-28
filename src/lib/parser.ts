@@ -2,7 +2,20 @@
 // Parser utilities
 // -----------------------------------------------------------------------------
 
-export type ParseError = {type:"error", position:number, message:string};
+export class ParseError {
+  type     : "error" = "error";
+  position : number;
+  message  : string;
+
+  constructor(message : string, position : number) {
+    this.message = message;
+    this.position = position;
+  }
+
+  toString() {
+    return this.message +" at " + this.position;
+  }
+};
 
 export class Parser {
   string : string;
@@ -42,7 +55,7 @@ export class Parser {
 
   // Error messages
   expected(thing : string) : ParseError {
-    return { type:"error", message:"Expected " + thing + " instead of " + this.tokenMessage(), position:this.position };
+    return new ParseError("Expected " + thing + " instead of " + this.tokenMessage(), this.position);
   }
 
   tokenMessage() : string {
