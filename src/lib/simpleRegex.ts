@@ -79,6 +79,22 @@ export function makeWord(x : SimpleRegex) : string | null {
   }
 }
 
+export function getSumParts(x : SimpleRegex) : SimpleRegex[] {
+  if (x.type == "plus") {
+    return getSumParts(x.a).concat(getSumParts(x.b));
+  } else {
+    return [x];
+  }
+}
+
+export function getProductParts(x : SimpleRegex) : SimpleRegex[] {
+  if (x.type == "times") {
+    return getProductParts(x.a).concat(getProductParts(x.b));
+  } else {
+    return [x];
+  }
+}
+
 // -----------------------------------------------------------------------------
 // Display
 // -----------------------------------------------------------------------------

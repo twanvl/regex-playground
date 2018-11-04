@@ -192,6 +192,14 @@ export function diffDfa(a : DFA, b : DFA) : DFA {
   return zipDfa(a, b, (x,y) => x && !y);
 }
 
+export function unionDfa(a : DFA, b : DFA) : DFA {
+  return zipDfa(a, b, (x,y) => x || y);
+}
+
+export function intersectDfa(a : DFA, b : DFA) : DFA {
+  return zipDfa(a, b, (x,y) => x && y);
+}
+
 export interface ComparisonResult {
   equal  : boolean;
   notInA : string | null;

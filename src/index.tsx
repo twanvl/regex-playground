@@ -6,6 +6,7 @@ import * as NFA from './lib/nfa';
 import * as DFA from './lib/dfa';
 import {ParseError} from './lib/parser';
 import {setLocale,dutch,english} from './lib/localization';
+import RailroadDiagram from './components/RailroadDiagram';
 
 //setLocale(dutch);
 
@@ -50,7 +51,6 @@ interface AutomatonRenderProps {
 interface AutomatonRenderState {
 };
 
-
 // -----------------------------------------------------------------------------
 // Regex Editor
 // -----------------------------------------------------------------------------
@@ -80,6 +80,7 @@ class REEditor extends React.Component<EditorProps,EditorState> {
       let dfa = DFA.nfaToDfa(nfa);
       return (
         <div>
+          <RailroadDiagram regex={re} />
           <div>{RE.showRegex(re)}</div>
           <div>NFA: {NFA.showNFA(nfa)}</div>
           <div>Alphabet: {"{"+nfa.alphabet().join(", ")+"}"}</div>
