@@ -151,7 +151,7 @@ function railroadLayout(re : RE.SimpleRegex) : RailroadRenderable {
 
 function railroadRender(x : RE.SimpleRegex) : Renderable {
   const layout = railroadLayout(x);
-  const circSize = 4;
+  const circSize = 3;
   const circSpace = 10;
   const width = layout.width + 2*circSpace;
   const height = Math.max(layout.height, 2*circSpace);
