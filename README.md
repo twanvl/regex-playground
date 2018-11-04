@@ -9,3 +9,8 @@ The aims are:
  * to offer a playground for converting between various representations
  * to be a tool for checking student homework in formal languages courses.
 
+
+## Technical details
+
+The project is built in typescript + react.
+
