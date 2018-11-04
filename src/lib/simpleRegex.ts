@@ -156,6 +156,6 @@ export function parseRegex(x : string) : SimpleRegex | ParseError {
   let parser = new Parser(x);
   let result = parseRegexPrivate(parser, 0);
   if (result.type == "error") return result;
-  if (!parser.eof) return parser.expected("end-of-input");
+  if (!parser.eof()) return parser.expected("end-of-input");
   return result;
 }

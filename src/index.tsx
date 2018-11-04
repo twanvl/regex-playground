@@ -3,6 +3,7 @@ import * as ReactDOM from 'react-dom';
 
 import * as RE from './lib/simpleRegex';
 import * as NFA from './lib/nfa';
+import * as DFA from './lib/dfa';
 import {ParseError} from './lib/parser';
 import {setLocale,dutch,english} from './lib/localization';
 
@@ -75,11 +76,15 @@ class REEditor extends React.Component<EditorProps,EditorState> {
     } else if (re.type == "error") {
       return re.toString();
     } else {
+      let nfa = NFA.regexToNFA(re);
+      let dfa = DFA.nfaToDfa(nfa);
       return (
         <div>
           <div>{RE.showRegex(re)}</div>
-          <div>{NFA.showNFA(NFA.regexToNFA(re))}</div>
-          <div>{RE.makeWord(re)}</div>
+          <div>NFA: {NFA.showNFA(nfa)}</div>
+          <div>Alphabet: {"{"+nfa.alphabet().join(", ")+"}"}</div>
+          <div>Word: {RE.makeWord(re)}</div>
+          <div>DFA: {NFA.showNFA(DFA.dfaToNfa(dfa))}</div>
         </div>
       );
     }
