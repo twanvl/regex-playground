@@ -1,3 +1,5 @@
+import {locale} from './localization';
+
 // -----------------------------------------------------------------------------
 // Parser utilities
 // -----------------------------------------------------------------------------
@@ -55,12 +57,12 @@ export class Parser {
 
   // Error messages
   expected(thing : string) : ParseError {
-    return new ParseError("Expected " + thing + " instead of " + this.tokenMessage(), this.position);
+    return new ParseError(locale.expected(thing, this.tokenMessage()), this.position);
   }
 
   tokenMessage() : string {
     if (this.eof()) {
-      return "end-of-input";
+      return locale.endOfInput;
     } else {
       return this.peek();
     }

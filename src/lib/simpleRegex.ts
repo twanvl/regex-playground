@@ -1,5 +1,6 @@
 // Regex Playground: Regular expressions
 
+import {locale} from './localization';
 import {Parser,ParseError} from './parser';
 
 // -----------------------------------------------------------------------------
@@ -44,6 +45,7 @@ export function times(a : SimpleRegex, b : SimpleRegex) : SimpleRegex {
 // Properties
 // -----------------------------------------------------------------------------
 
+// Does a regex match the empty string?
 export function containsEmpty(x : SimpleRegex) : boolean {
   switch (x.type) {
     case "zero": return false;
@@ -52,6 +54,28 @@ export function containsEmpty(x : SimpleRegex) : boolean {
     case "star": return true;
     case "plus": return containsEmpty(x.a) || containsEmpty(x.b);
     case "times": return containsEmpty(x.a) && containsEmpty(x.b);
+  }
+}
+
+// Find any word that is matched by the regex
+export function makeWord(x : SimpleRegex) : string | null {
+  switch (x.type) {
+    case "zero": return null;
+    case "one":  return "";
+    case "char": return x.char;
+    case "star": return "";
+    case "plus": {
+      let a = makeWord(x.a);
+      if (a != null) return a;
+      let b = makeWord(x.b);
+      return b;
+    }
+    case "times": ; {
+      let a = makeWord(x.a);
+      let b = makeWord(x.b);
+      if (a == null || b == null) return null;
+      return a + b;
+    }
   }
 }
 
@@ -87,7 +111,7 @@ export function showRegex(x : SimpleRegex, level? : number) : string {
 function parsePrimRegex(p : Parser) : SimpleRegex | ParseError {
   p.skipWhitespace();
   if (p.eof()) {
-    return p.expected("regular expression");
+    return p.expected(locale.regularExpression);
   } else if (p.token("(")) {
     let a = parseRegexPrivate(p,0);
     if (a.type == "error") return a;
@@ -101,7 +125,7 @@ function parsePrimRegex(p : Parser) : SimpleRegex | ParseError {
   } else if ("+*|?)".indexOf(p.peek()) == -1) {
     return char(p.anyChar());
   } else {
-    return p.expected("regular expression");
+    return p.expected(locale.regularExpression);
   }
 }
 
