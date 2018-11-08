@@ -11,7 +11,7 @@ export type NodeID = number;
 export interface Edge<T> {
   label: T;
   to: NodeID;
-};
+}
 
 export interface Node<T> {
   edges : Edge<T>[];
@@ -205,7 +205,7 @@ export function nfaToNfar(nfa : NFA) : NFAr {
 function showNFANode(nfa : NFA, id : NodeID, node : Node<string>) {
   let out = [];
   for (const edge of node.edges) {
-    out.push(edge.label + " " + nfa.nodes[edge.to].label)
+    out.push(edge.label + " " + nfa.nodes[edge.to].label);
   }
   if (node.final) out.push("1");
   return node.label + " -> " + out.join(" | ");

@@ -22,7 +22,7 @@ export type Alphabet = ReadonlyArray<string>;
 // -----------------------------------------------------------------------------
 
 function showSimpleLanguage(l : SimpleLanguage) {
-  return "{" + "w in " + showAlphabet(l.alphabet) + " | " + showCondition(l.condition,"w") + "}"
+  return "{" + "w in " + showAlphabet(l.alphabet) + " | " + showCondition(l.condition,"w") + "}";
 }
 function showCondition(c : Condition, w : string) {
   switch(c.type) {
@@ -31,7 +31,7 @@ function showCondition(c : Condition, w : string) {
   return "TODO";
 }
 function showAlphabet(a : Alphabet) {
-  return "{" + a.join(",") + "}"
+  return "{" + a.join(",") + "}";
 }
 
 // -----------------------------------------------------------------------------

@@ -31,7 +31,7 @@ export function sequence(layouts : NestedLayout[]) : NestedLayout {
 }
 function sequenceUnchecked(children : NestedLayout[]) : NestedLayout {
   if (children.length == 1) return children[0];
-  return {type:"sequence", children}
+  return {type:"sequence", children};
 }
 export function sequence2(a : NestedLayout, b : NestedLayout) : NestedLayout {
   if (a.type == "sequence" && b.type != "sequence") {

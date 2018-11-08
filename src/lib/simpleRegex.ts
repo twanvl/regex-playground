@@ -13,7 +13,7 @@ export type SimpleRegex
   | { readonly type: "char"; readonly char: string }
   | { readonly type: "star"; readonly a: SimpleRegex }
   | { readonly type: "plus"; readonly a: SimpleRegex; readonly b: SimpleRegex }
-  | { readonly type: "times"; readonly a: SimpleRegex; readonly b: SimpleRegex }
+  | { readonly type: "times"; readonly a: SimpleRegex; readonly b: SimpleRegex };
 
 // -----------------------------------------------------------------------------
 // Construction
@@ -70,7 +70,7 @@ export function makeWord(x : SimpleRegex) : string | null {
       let b = makeWord(x.b);
       return b;
     }
-    case "times": ; {
+    case "times": {
       let a = makeWord(x.a);
       let b = makeWord(x.b);
       if (a == null || b == null) return null;

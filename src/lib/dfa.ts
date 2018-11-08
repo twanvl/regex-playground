@@ -1,4 +1,5 @@
 import * as NFA from './nfa';
+import { removeDuplicates, fillArray } from './util';
 
 // -----------------------------------------------------------------------------
 // Data type
@@ -101,7 +102,7 @@ interface BuildDFASpec<A,B> {
   edge:  (info : A, char : string) => A;
   alphabet: string[];
   initial: A;
-};
+}
 
 function buildDFA<A,B>(spec : BuildDFASpec<A,B>) : GenDFA<B> {
   let ids : Map<string,NodeID> = new Map<string,NodeID>();
@@ -151,11 +152,11 @@ export function nfaToDfa(nfa : NFA.NFA) : DFA {
 }
 
 function dfaToNfaNode({edges:dfaEdges,label,final} : Node<boolean>) : NFA.Node<string> {
-  let edges = []
+  let edges = [];
   for (const [label,to] of dfaEdges.entries()) {
     edges.push({label,to});
   }
-  return {edges,label,final}
+  return {edges,label,final};
 }
 export function dfaToNfa(dfa : DFA) : NFA.NFA {
   let nodes = dfa.nodes.map(dfaToNfaNode);

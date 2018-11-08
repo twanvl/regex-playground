@@ -2,11 +2,13 @@ import {Renderable,RenderableCanvas} from './RenderableCanvas';
 import * as NFA from '../lib/nfa';
 import * as GL from '../lib/graphLayout';
 import * as React from 'react';
+import {vec2} from '../lib/util';
 
 // -----------------------------------------------------------------------------
 // Automaton rendering
 // -----------------------------------------------------------------------------
 
+/*
 type vec2 = [number,number];
 
 function addMul([x1,y1] : vec2, [x2,y2] : vec2, s : number = 1) : vec2 {
@@ -15,7 +17,7 @@ function addMul([x1,y1] : vec2, [x2,y2] : vec2, s : number = 1) : vec2 {
 function normalize([x,y] : vec2) : vec2 {
   const l = Math.sqrt(x*x + y*y);
   return [x / l, y / l];
-}
+}*/
 
 const emptyLabel = "ε";
 
@@ -48,23 +50,23 @@ function automatonRender(props : AutomatonDiagramProps) : Renderable {
       }
       ctx.fillText(node.label, x,y);
     }
+
     function drawEdge(p1 : vec2, p2 : vec2, r1 : number, r2 : number, label : string = "") {
-      let dir = normalize(addMul(p2,p1,-1));
-      let perp : vec2 = [dir[1],-dir[0]];
-      p1 = addMul(p1,dir,r1);
-      p2 = addMul(p2,dir,-(r2+2));
+      let dir = vec2.direction(p1,p2);
+      p1 = vec2.addMul(p1,dir,r1);
+      p2 = vec2.addMul(p2,dir,-(r2+2));
       const arrowWidth  = 8;
       const arrowHeight = 5;
-      let ar1 = addMul(addMul(p2, dir,-arrowWidth), perp,arrowHeight);
-      let ar2 = addMul(addMul(p2, dir,-arrowWidth), perp,-arrowHeight);
+      let ar1 = vec2.addInDirection(p2, dir,[-arrowWidth,arrowHeight]);
+      let ar2 = vec2.addInDirection(p2, dir,[-arrowWidth,-arrowHeight]);
       ctx.beginPath();
-      ctx.moveTo(p1[0],p1[1]);
-      ctx.lineTo(p2[0],p2[1]);
-      ctx.moveTo(ar1[0],ar1[1]);
-      ctx.lineTo(p2[0],p2[1]);
-      ctx.lineTo(ar2[0],ar2[1]);
+      ctx.moveToVec(p1);
+      ctx.lineToVec(p2);
+      ctx.moveToVec(ar1);
+      ctx.lineToVec(p2);
+      ctx.lineToVec(ar2);
       ctx.stroke();
-      let labelPos = addMul(addMul(p1, dir,20), perp,12);
+      let labelPos = vec2.addInDirection(p1, dir, [20,12]);
       ctx.fillText(label, labelPos[0],labelPos[1]);
     }
 
@@ -79,14 +81,14 @@ function automatonRender(props : AutomatonDiagramProps) : Renderable {
       let r1 = node.final ? nodeRadiusFinal : nodeRadius;
       drawNode(pos,node);
       if (automaton.initial == i) {
-        drawEdge(addMul(pos,[-60,0]), pos, 0, r1)
+        drawEdge(vec2.add(pos,[-60,0]), pos, 0, r1);
       }
       for (const edge of node.edges) {
         let r2 = automaton.nodes[edge.to].final ? nodeRadiusFinal : nodeRadius;
         let label = edge.label == "" ? emptyLabel : edge.label;
         drawEdge(pos, positions[edge.to], r1, r2, label);
       }
-    })
+    });
   }};
 }
 

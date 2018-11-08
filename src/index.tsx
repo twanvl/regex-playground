@@ -25,11 +25,11 @@ let r1 = RE.parseRegex("(a)b+c(d+e)***(*)");
 // -----------------------------------------------------------------------------
 
 interface EditorProps {
-};
+}
 interface EditorState {
   unparsed: string;
-  parsed?:  ParseError | RE.SimpleRegex
-};
+  parsed?:  ParseError | RE.SimpleRegex;
+}
 class REEditor extends React.Component<EditorProps,EditorState> {
   /*state : State = {
     unparsed: ""
@@ -60,7 +60,7 @@ class REEditor extends React.Component<EditorProps,EditorState> {
     }
   }
   handleChange = (event : React.FormEvent<HTMLTextAreaElement>) => {
-    let target = event.target as HTMLTextAreaElement
+    let target = event.target as HTMLTextAreaElement;
     let unparsed = target.value;
     this.setState({ unparsed:unparsed, parsed:RE.parseRegex(unparsed) });
   }

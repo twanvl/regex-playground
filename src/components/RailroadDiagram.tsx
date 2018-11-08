@@ -19,7 +19,7 @@ function drawBackRoad(ctx : CanvasRenderingContext2D, x1 : number, y1 : number, 
 }
 
 function drawForkRoad(ctx : CanvasRenderingContext2D, x1 : number, y1 : number, x2 : number, y2 : number, radius : number) {
-  radius = Math.min(radius, Math.min(Math.abs(y1-y2)/2, Math.abs(x1-x2)/2))
+  radius = Math.min(radius, Math.min(Math.abs(y1-y2)/2, Math.abs(x1-x2)/2));
   let xm = (x1+x2)/2;
   let ym = (y1+y2)/2;
   ctx.moveTo(x1,y1);
@@ -100,7 +100,7 @@ function railroadLayout(re : RE.SimpleRegex) : RailroadRenderable {
         let topInner = yspace - baseline;
         for (let i = 0 ; i < layouts.length ; ++i) {
           let part = layouts[i];
-          let leftInner = (width-part.width)/2
+          let leftInner = (width-part.width)/2;
           let rightInner = leftInner + part.width;
           let yInner = topInner + part.baseline;
           part.render(ctx, x+leftInner, y+yInner);
@@ -170,7 +170,7 @@ function railroadRender(x : RE.SimpleRegex) : Renderable {
 }
 
 interface RailroadDiagramProps {
-  regex : RE.SimpleRegex
+  regex : RE.SimpleRegex;
 }
 
 export default class RailroadDiagram extends React.Component<RailroadDiagramProps> {

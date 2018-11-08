@@ -1,5 +1,8 @@
 {
   "extends": ["tslint-react"],
+  "rules": {
+    "semicolon": [true, "always"]
+  },
   "defaultSeverity": "warning",
   "linterOptions": {
     "exclude": [

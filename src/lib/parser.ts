@@ -17,7 +17,7 @@ export class ParseError {
   toString() {
     return this.message +" at " + this.position;
   }
-};
+}
 
 export class Parser {
   string : string;
