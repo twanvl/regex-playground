@@ -7,6 +7,7 @@ import * as DFA from './lib/dfa';
 import {ParseError} from './lib/parser';
 import {setLocale,dutch,english} from './lib/localization';
 import RailroadDiagram from './components/RailroadDiagram';
+import AutomatonDiagram from './components/AutomatonDiagram';
 
 //setLocale(dutch);
 
@@ -18,38 +19,6 @@ let r1 = RE.parseRegex("(a)b+c(d+e)***(*)");
 // Automaton rendering
 // -----------------------------------------------------------------------------
 
-/*
-
-Layout:
- * topological sort
-   * then parallel
-   * but: how to see what is first?
- * for regex->nfa, the order should be clear
- * start from initial state
-   * if there is one "next" state, then that one is next
-   * if there are multiple "next" states
-     * if A is an ancestor of B, but not vice-versa then A is next
-     * if A and B are independent, both are next (branch)
-     * ancestor relations don't pass through visited nodes
-     * if A and B are ancestors of eachother
-       * if only two: grid layout
-       * if 3: pick at random?
-
-*/
-interface DrawnNode {
-  x : Number;
-  y : Number;
-  
-}
-interface DrawnAutomaton {
-}
-
-
-interface AutomatonRenderProps {
-  automaton: NFA.NFA;
-};
-interface AutomatonRenderState {
-};
 
 // -----------------------------------------------------------------------------
 // Regex Editor
@@ -82,7 +51,7 @@ class REEditor extends React.Component<EditorProps,EditorState> {
         <div>
           <RailroadDiagram regex={re} />
           <div>{RE.showRegex(re)}</div>
-          <div>NFA: {NFA.showNFA(nfa)}</div>
+          <div>NFA: <AutomatonDiagram automaton={nfa} /></div>
           <div>Alphabet: {"{"+nfa.alphabet().join(", ")+"}"}</div>
           <div>Word: {RE.makeWord(re)}</div>
           <div>DFA: {NFA.showNFA(DFA.dfaToNfa(dfa))}</div>

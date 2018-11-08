@@ -1,5 +1,6 @@
 import * as RE from './simpleRegex';
 import {SimpleRegex} from './simpleRegex';
+import * as GL from './graphLayout';
 
 // -----------------------------------------------------------------------------
 // Data type
@@ -7,34 +8,23 @@ import {SimpleRegex} from './simpleRegex';
 
 export type NodeID = number;
 
-interface Edge<T> {
+export interface Edge<T> {
   label: T;
   to: NodeID;
 };
 
-interface Node<T> {
+export interface Node<T> {
   edges : Edge<T>[];
   label : string;
+  final : boolean;
 }
 
 class Automaton<T> {
-  nodes   : Node<T>[];
-  initial : NodeID;
-  final   : NodeID[];
-  
-  constructor(nodes : Node<T>[], initial : NodeID, final : NodeID[]) {
-    this.nodes = nodes;
-    this.initial = initial;
-    this.final = final;
-  }
-  
-  isFinal(node : NodeID) {
-    return this.final.includes(node);
-  }
+  constructor(public nodes : Node<T>[], public initial : NodeID, public layout? : GL.NestedLayout) {}
 
   isFinalSet(nodes : NodeID[]) {
     for (const node of nodes) {
-      if (this.isFinal(node)) return true;
+      if (this.nodes[node].final) return true;
     }
     return false;
   }
@@ -55,8 +45,8 @@ class Automaton<T> {
 }
 
 export class NFA extends Automaton<string> {
-  constructor(nodes : Node<string>[], initial : NodeID, final : NodeID[]) {
-    super(nodes, initial, final);
+  constructor(nodes : Node<string>[], initial : NodeID, public layout? : GL.NestedLayout) {
+    super(nodes, initial, layout);
   }
 
   private lambdaClosureInPlace(states : NodeID[]) {
@@ -81,7 +71,7 @@ export class NFA extends Automaton<string> {
   initialClosure() : NodeID[] {
     return this.lambdaClosure([this.initial]);
   }
-  
+
   stepClosure(froms : NodeID[], label : string) : NodeID[] {
     return this.lambdaClosure(this.step(froms,label));
   }
@@ -105,15 +95,18 @@ export type NFAr = Automaton<SimpleRegex>;
 // Remove "" edges
 // -----------------------------------------------------------------------------
 
-
 /*
-export function removeLambdaTransitions(nfa : NFA) : NFA {
-  
+export function removeEmptyTransitions(nfa : NFA) : NFA {
 }*/
 
 // -----------------------------------------------------------------------------
 // Regex to NFA
 // -----------------------------------------------------------------------------
+
+interface FinalAndLayout {
+  final: NodeID[];
+  layout: GL.NestedLayout;
+}
 
 class NFABuilder {
   nodes : Node<string>[] = [];
@@ -121,7 +114,7 @@ class NFABuilder {
   addNode() : NodeID {
     let id = this.nodes.length;
     let label = "q" + id;
-    this.nodes.push({edges:[], label});
+    this.nodes.push({edges:[], label, final:false});
     return id;
   }
 
@@ -135,49 +128,61 @@ class NFABuilder {
     }
   }
 
-  joinFinal(starts : NodeID[]) : NodeID {
-    if (starts.length == 1) return starts[0];
+  // Add a new single final node if needed
+  joinFinal({final,layout} : FinalAndLayout) : {node: NodeID, layout: GL.NestedLayout} {
+    if (final.length == 1) return {node:final[0], layout};
     let id = this.addNode();
-    this.addEdges(starts, id, "");
-    return id;
+    this.addEdges(final, id, "");
+    return {node:id, layout:GL.sequence2(layout,GL.node(id))};
   }
 
-  addRegex(start : NodeID, re : SimpleRegex) : NodeID[] {
+  addRegex(start : NodeID, re : SimpleRegex) : FinalAndLayout {
     switch (re.type) {
-      case "zero": return [];
-      case "one":  return [start];
+      case "zero": return {final: [],      layout: GL.empty()};
+      case "one":  return {final: [start], layout: GL.empty()};
       case "char": {
         let final = this.addNode();
         this.addEdge(start, final, re.char);
-        return [final];
+        return (
+          { final:  [final]
+          , layout: GL.node(final) });
       }
       case "plus": {
-        let final1 = this.addRegex(start, re.a);
-        let final2 = this.addRegex(start, re.b);
-        return final1.concat(final2);
+        let a = this.addRegex(start, re.a);
+        let b = this.addRegex(start, re.b);
+        return (
+          { final:  a.final.concat(b.final)
+          , layout: GL.parallel2(a.layout, b.layout) });
       }
       case "times": {
-        let final1 = this.addRegex(start, re.a);
-        let start2 = this.joinFinal(final1);
-        let final2 = this.addRegex(start2, re.b);
-        return final2;
+        let a = this.joinFinal(this.addRegex(start, re.a));
+        let b = this.addRegex(a.node, re.b);
+        return (
+          { final:  b.final
+          , layout: GL.sequence2(a.layout, b.layout) });
       }
       case "star": {
         let start2 = this.addNode();
-        let finals = this.addRegex(start2, re.a);
+        let a = this.addRegex(start2, re.a);
         this.addEdge(start, start2, "");
-        this.addEdges(finals, start2, "");
-        return [start2];
+        this.addEdges(a.final, start2, "");
+        return (
+          { final:  [start2]
+          , layout: GL.sequence2(GL.node(start2), a.layout) });
       }
     }
   }
 }
 
 export function regexToNFA(re : SimpleRegex) : NFA {
-  let nfa = new NFABuilder();
-  let start = nfa.addNode();
-  let finals = nfa.addRegex(start, re);
-  return new NFA(nfa.nodes, start, finals);
+  let builder = new NFABuilder();
+  let start = builder.addNode();
+  let {final,layout} = builder.addRegex(start, re);
+  for (const f of final) {
+    builder.nodes[f].final = true;
+  }
+  layout = GL.sequence2(GL.node(start), layout);
+  return new NFA(builder.nodes, start, layout);
 }
 
 // -----------------------------------------------------------------------------
@@ -185,11 +190,12 @@ export function regexToNFA(re : SimpleRegex) : NFA {
 // -----------------------------------------------------------------------------
 
 function nfaToNfarNode(node : Node<string>) : Node<SimpleRegex> {
-  return {...node, edges: node.edges.map((e : Edge<string>) => ({to:e.to, label:RE.char(e.label)}))};
+  //return {...node, edges: node.edges.map((e : Edge<string>) => ({to:e.to, final:e.final, label:RE.char(e.label)}))};
+  return {...node, edges: node.edges.map(({to,label}) => ({to, label:RE.char(label)}))};
 }
 
 export function nfaToNfar(nfa : NFA) : NFAr {
-  return new Automaton<SimpleRegex>(nfa.nodes.map(nfaToNfarNode), nfa.initial, nfa.final);
+  return new Automaton<SimpleRegex>(nfa.nodes.map(nfaToNfarNode), nfa.initial, nfa.layout);
 }
 
 // -----------------------------------------------------------------------------
@@ -201,7 +207,7 @@ function showNFANode(nfa : NFA, id : NodeID, node : Node<string>) {
   for (const edge of node.edges) {
     out.push(edge.label + " " + nfa.nodes[edge.to].label)
   }
-  if (nfa.isFinal(id)) out.push("1");
+  if (node.final) out.push("1");
   return node.label + " -> " + out.join(" | ");
 }
 

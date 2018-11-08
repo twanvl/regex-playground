@@ -68,7 +68,7 @@ export type DFA = GenDFA<boolean>;
 
 // Does a DFA have reachable final states? If so, with what word
 function reachableWord(dfa : DFA) : string | null {
-  let words : Array<string|null> = Array(dfa.nodes.length).fill(null);
+  let words : Array<string|null> = fillArray(dfa.nodes.length, null);
   let queue : NodeID[] = [dfa.initial];
   words[dfa.initial] = "";
   let pos = 0;
@@ -107,12 +107,13 @@ function buildDFA<A,B>(spec : BuildDFASpec<A,B>) : GenDFA<B> {
   let ids : Map<string,NodeID> = new Map<string,NodeID>();
   let nodes : Node<B>[] = [];
   let queue : A[] = [];
+  let queuePos = 0;
   function makeOrGet(info : A) {
     let key = spec.key(info);
     if (ids.has(key)) {
       return ids.get(key)!;
     } else {
-      let id = nodes.length + queue.length;
+      let id = nodes.length + queue.length - queuePos;
       queue.push(info);
       ids.set(key,id);
       return id;
@@ -120,8 +121,8 @@ function buildDFA<A,B>(spec : BuildDFASpec<A,B>) : GenDFA<B> {
   }
   queue.push(spec.initial);
   ids.set(spec.key(spec.initial),0);
-  while (queue.length > 0) {
-    let info  = queue.shift() as A;
+  while (queuePos < queue.length) {
+    let info  = queue[queuePos++];
     let label = spec.label(info);
     let final = spec.final(info);
     let edges = new Map<string,NodeID>();
@@ -148,20 +149,17 @@ export function nfaToDfa(nfa : NFA.NFA) : DFA {
     initial: nfa.initialClosure()
   });
 }
-  
-export function dfaToNfa(dfa : DFA) : NFA.NFA {
-  let final = [];
-  let nodes = [];
-  for (let i = 0 ; i < dfa.nodes.length ; ++i) {
-    let node = dfa.nodes[i];
-    let edges = [];
-    for (const [label,to] of node.edges.entries()) {
-      edges.push({label,to});
-    }
-    nodes.push({label:node.label, edges});
-    if (node.final) final.push(i);
+
+function dfaToNfaNode({edges:dfaEdges,label,final} : Node<boolean>) : NFA.Node<string> {
+  let edges = []
+  for (const [label,to] of dfaEdges.entries()) {
+    edges.push({label,to});
   }
-  return new NFA.NFA(nodes, dfa.initial, final);
+  return {edges,label,final}
+}
+export function dfaToNfa(dfa : DFA) : NFA.NFA {
+  let nodes = dfa.nodes.map(dfaToNfaNode);
+  return new NFA.NFA(nodes, dfa.initial);
 }
 
 // -----------------------------------------------------------------------------
@@ -183,7 +181,7 @@ export function zipDfa<A,B,C>(a : GenDFA<A>, b : GenDFA<B>, f : (x : A, y : B) =
     final: ([na,nb]) => f(a.getFinal(na), b.getFinal(nb)),
     failFinal: f(a.failFinal, b.failFinal),
     edge:  ([na,nb],x) => [a.step(na,x),b.step(nb,x)],
-    alphabet: a.alphabet(),
+    alphabet: removeDuplicates(a.alphabet().concat(b.alphabet())),
     initial: [a.initial, b.initial]
   });
 }
@@ -201,17 +199,17 @@ export function intersectDfa(a : DFA, b : DFA) : DFA {
 }
 
 export interface ComparisonResult {
-  equal  : boolean;
-  notInA : string | null;
-  notInB : string | null;
+  equal   : boolean;
+  onlyInA : string | null;
+  onlyInB : string | null;
 }
 
 export function compareDfa(a : DFA, b : DFA) : ComparisonResult {
   let aMinB = diffDfa(a,b);
   let bMinA = diffDfa(b,a);
-  let notInB = reachableWord(aMinB);
-  let notInA = reachableWord(bMinA);
-  let equal = notInA === null && notInB === null;
-  return {equal,notInA,notInB};
+  let onlyInA = reachableWord(aMinB);
+  let onlyInB = reachableWord(bMinA);
+  let equal = onlyInA === null && onlyInB === null;
+  return {equal,onlyInA,onlyInB};
 }
 
