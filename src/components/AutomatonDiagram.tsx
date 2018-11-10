@@ -1,5 +1,6 @@
 import {Renderable,RenderableCanvas} from './RenderableCanvas';
 import * as NFA from '../lib/nfa';
+import {Automaton,Node,NodeID} from '../lib/automaton';
 import * as GL from '../lib/graphLayout';
 import * as React from 'react';
 import {vec2} from '../lib/util';
@@ -19,16 +20,14 @@ function normalize([x,y] : vec2) : vec2 {
   return [x / l, y / l];
 }*/
 
-const emptyLabel = "ε";
-
 function automatonRender(props : AutomatonDiagramProps) : Renderable {
   const scale = 90;
   const nodeRadius = 20;
   const nodeRadiusFinal = nodeRadius + 4;
   const leftMargin = 20;
 
-  let automaton = props.automaton;
-  if (!automaton.layout) return { width:scale, height:scale, render: ()=>{} };
+  let automaton = props.automaton.toAutomaton();
+  if (!automaton.layout) automaton.layout = GL.automatonLayout(automaton);
   let layout = GL.nestedLayoutPositions(automaton.layout);
 
   let width  = layout.width * scale;
@@ -39,7 +38,7 @@ function automatonRender(props : AutomatonDiagramProps) : Renderable {
   }
 
   return { width, height, render: (ctx) => {
-    function drawNode([x,y] : vec2, node : NFA.Node<string>) {
+    function drawNode([x,y] : vec2, node : Node) {
       ctx.beginPath();
       ctx.arc(x,y, nodeRadius, 0,2*Math.PI);
       ctx.stroke();
@@ -70,7 +69,7 @@ function automatonRender(props : AutomatonDiagramProps) : Renderable {
       ctx.fillText(label, labelPos[0],labelPos[1]);
     }
 
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 1.5;
     ctx.font = '16px serif';
     ctx.textBaseline = 'middle';
     ctx.textAlign = 'center';
@@ -80,13 +79,12 @@ function automatonRender(props : AutomatonDiagramProps) : Renderable {
       let pos = positions[i];
       let r1 = node.final ? nodeRadiusFinal : nodeRadius;
       drawNode(pos,node);
-      if (automaton.initial == i) {
+      if (node.initial) {
         drawEdge(vec2.add(pos,[-60,0]), pos, 0, r1);
       }
       for (const edge of node.edges) {
         let r2 = automaton.nodes[edge.to].final ? nodeRadiusFinal : nodeRadius;
-        let label = edge.label == "" ? emptyLabel : edge.label;
-        drawEdge(pos, positions[edge.to], r1, r2, label);
+        drawEdge(pos, positions[edge.to], r1, r2, edge.label);
       }
     });
   }};
@@ -97,7 +95,7 @@ function automatonRender(props : AutomatonDiagramProps) : Renderable {
 // -----------------------------------------------------------------------------
 
 interface AutomatonDiagramProps {
-  automaton: NFA.NFA;
+  automaton: Automaton | NFA.NFA;
 }
 
 export default class AutomatonDiagram extends React.Component<AutomatonDiagramProps> {

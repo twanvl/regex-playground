@@ -1,5 +1,6 @@
 import * as RE from './simpleRegex';
 import {SimpleRegex} from './simpleRegex';
+import * as A from './automaton';
 import * as GL from './graphLayout';
 
 // -----------------------------------------------------------------------------
@@ -86,6 +87,10 @@ export class NFA extends Automaton<string> {
     if (labels.size < 2) labels.add("a");
     if (labels.size < 2) labels.add("b");
     return Array.from(labels);
+  }
+
+  toAutomaton() : A.Automaton {
+    return nfaToAutomaton(this);
   }
 }
 
@@ -196,6 +201,28 @@ function nfaToNfarNode(node : Node<string>) : Node<SimpleRegex> {
 
 export function nfaToNfar(nfa : NFA) : NFAr {
   return new Automaton<SimpleRegex>(nfa.nodes.map(nfaToNfarNode), nfa.initial, nfa.layout);
+}
+
+
+const emptyLabel = "ε";
+
+function nfaToAutomatonNode(node : Node<string>, initial:boolean) : A.Node {
+  let edgesTo : Map<number,string[]> = new Map();
+  for (const e of node.edges) {
+    if (!edgesTo.has(e.to)) edgesTo.set(e.to,[]);
+    edgesTo.get(e.to)!.push(e.label == "" ? emptyLabel : e.label);
+  }
+  let edges : A.Edge[] = [];
+  for (const [to,labels] of edgesTo.entries()) {
+    if (labels.length > 0) {
+      edges.push({to,label:labels.join(',')});
+    }
+  }
+  return {...node, initial, edges};
+}
+
+export function nfaToAutomaton(nfa : NFA) : A.Automaton {
+  return new A.Automaton(nfa.nodes.map((node,i) => nfaToAutomatonNode(node,i==nfa.initial)), nfa.layout);
 }
 
 // -----------------------------------------------------------------------------

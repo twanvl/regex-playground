@@ -8,6 +8,7 @@ import {ParseError} from './lib/parser';
 import {setLocale,dutch,english} from './lib/localization';
 import RailroadDiagram from './components/RailroadDiagram';
 import AutomatonDiagram from './components/AutomatonDiagram';
+import RailroadDiagramSVG from './components/RailroadDiagramSVG';
 
 //setLocale(dutch);
 
@@ -50,13 +51,17 @@ class REEditor extends React.Component<EditorProps,EditorState> {
       return (
         <div>
           <RailroadDiagram regex={re} />
+          <RailroadDiagramSVG regex={re} />
           <div>{RE.showRegex(re)}</div>
           <div>NFA: <AutomatonDiagram automaton={nfa} /></div>
+          <div>Layout: <AutomatonDiagram automaton={new NFA.NFA(nfa.nodes,nfa.initial)} /></div>
           <div>Alphabet: {"{"+nfa.alphabet().join(", ")+"}"}</div>
           <div>Word: {RE.makeWord(re)}</div>
           <div>DFA: {NFA.showNFA(DFA.dfaToNfa(dfa))}</div>
+          <div>DFA: <AutomatonDiagram automaton={DFA.dfaToNfa(dfa)} /></div>
         </div>
       );
+      //
     }
   }
   handleChange = (event : React.FormEvent<HTMLTextAreaElement>) => {

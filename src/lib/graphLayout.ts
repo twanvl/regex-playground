@@ -1,3 +1,4 @@
+import { Automaton, getParents } from "./automaton";
 
 // -----------------------------------------------------------------------------
 // Nested graph layout
@@ -34,10 +35,8 @@ function sequenceUnchecked(children : NestedLayout[]) : NestedLayout {
   return {type:"sequence", children};
 }
 export function sequence2(a : NestedLayout, b : NestedLayout) : NestedLayout {
-  if (a.type == "sequence" && b.type != "sequence") {
-    a.children.push(b);
-    return a;
-  }
+  if (a.type == "sequence" && a.children.length == 0) return b;
+  if (b.type == "sequence" && b.children.length == 0) return a;
   return sequence([a,b]);
 }
 
@@ -72,7 +71,6 @@ export function parallel2(a : NestedLayout, b : NestedLayout) : NestedLayout {
 // Automatic layout
 // -----------------------------------------------------------------------------
 
-
 // Place 'toAdd' after its parents (in sequence), but parallel to as many other things as possible
 // (input may be modified)
 export function insertAfter(root : NestedLayout, toAdd : NestedLayout, parents : NodeID[]) : NestedLayout {
@@ -92,8 +90,8 @@ export function insertAfter(root : NestedLayout, toAdd : NestedLayout, parents :
           if (children[children.length-1].here) {
             if (numChildren == 1) {
               // add to last child
-              x.children.pop();
-              return sequence2(x,children[children.length-1].add());
+              let before = sequenceUnchecked(x.children.slice(0,x.children.length-1));
+              return sequence2(before,children[children.length-1].add());
             } else {
               // add after last child
               return sequence2(x,toAdd);
@@ -103,14 +101,15 @@ export function insertAfter(root : NestedLayout, toAdd : NestedLayout, parents :
             // [x1,x2,x3,x4,x5]
             //  -->
             // [x1,x2,x3,[x4,x5] || toAdd]]
-            for (let i = children.length-1 ; i > 0 ; ++i) {
+            for (let i = children.length-1 ; i >= 0 ; --i) {
               if (children[i].here) {
-                let before = sequenceUnchecked(x.children.slice(0,i));
-                let after  = sequenceUnchecked(x.children.slice(i));
+                let before = sequenceUnchecked(x.children.slice(0,i+1));
+                let after  = sequenceUnchecked(x.children.slice(i+1));
                 return sequence2(before, parallel2(after,toAdd));
               }
             }
           }
+          console.log("HUH",{x,toAdd});
           return sequence2(x,toAdd);
         }};
       }
@@ -140,7 +139,7 @@ export function insertAfter(root : NestedLayout, toAdd : NestedLayout, parents :
             }
             return parallel2(parallelUnchecked(no),sequence2(parallelUnchecked(yes),toAdd));
           } else {
-            return parallel2(x,toAdd);
+            return sequence2(x,toAdd);
           }
         }};
       }
@@ -152,6 +151,17 @@ export function insertAfter(root : NestedLayout, toAdd : NestedLayout, parents :
   } else {
     return parallel2(root,toAdd);
   }
+}
+
+export function automatonLayout(a : Automaton) : NestedLayout {
+  // parents of each node
+  let parents = getParents(a);
+  // add nodes
+  let out = empty();
+  for (const i of a.nodes.keys()) {
+    out = insertAfter(out, node(i), parents[i]);
+  }
+  return out;
 }
 
 // -----------------------------------------------------------------------------
@@ -168,13 +178,9 @@ export interface GraphLayout {
   height : number;
   positions: NodePosition[];
 }
-/*
-interface GraphLayoutAlt {
-  size  : vec2;
-  positions: Map<NodeID,vec2>;
-}*/
 
 export function nestedLayoutPositions(l : NestedLayout, first : boolean = true, last : boolean = true) : GraphLayout {
+  console.log("Layout:",l);
   switch (l.type) {
     case "node":  {
       return {width: 1, height: 1, positions: [{node:l.node, x:0.5, y:0.5}] };
