@@ -1,7 +1,7 @@
 // Regex Playground: Regular expressions
 
 import {locale} from './localization';
-import {Parser,ParseError} from './parser';
+import {Parser,ParseError, ParseResult} from './parser';
 
 // -----------------------------------------------------------------------------
 // Data types
@@ -124,42 +124,45 @@ export function showRegex(x : SimpleRegex, level? : number) : string {
 // Parsing
 // -----------------------------------------------------------------------------
 
-function parsePrimRegex(p : Parser) : SimpleRegex | ParseError {
+function parsePrimRegex(p : Parser) : ParseResult<SimpleRegex> {
   p.skipWhitespace();
   if (p.eof()) {
-    return p.expected(locale.regularExpression);
+    return new ParseResult(one).addError(p.expected(locale.regularExpression));
   } else if (p.token("(")) {
     let a = parseRegexPrivate(p,0);
-    if (a.type == "error") return a;
     p.skipWhitespace();
-    if (!p.token(")")) return p.expected("')'");
+    if (!p.token(")")) a.addError(p.expected("')'"));
     return a;
   } else if (p.token("0")) {
-    return zero;
+    return new ParseResult(zero);
   } else if (p.token("1")) {
-    return one;
+    return new ParseResult(one);
   } else if ("+*|?)".indexOf(p.peek()) == -1) {
-    return char(p.anyChar());
+    return new ParseResult(char(p.anyChar()));
   } else {
-    return p.expected(locale.regularExpression);
+    return new ParseResult(one).addError(p.expected(locale.regularExpression));
   }
 }
 
-function parseRegexPrivate(p : Parser, level : number) : SimpleRegex | ParseError {
+function parseRegexPrivate(p : Parser, level : number) : ParseResult<SimpleRegex> {
   var a = parsePrimRegex(p);
-  if (a.type == "error") return a;
   p.skipWhitespace();
   while (!p.eof()) {
     if (level <= 0 && p.token("+")) {
       let b = parseRegexPrivate(p, 1);
-      if (b.type == "error") return b;
-      a = plus(a, b);
+      a = a.map2(b,plus);
+    } else if (level <= 10 && p.token("|")) {
+      let err = p.error(locale.warnRegexPipe);
+      let b = parseRegexPrivate(p, 1);
+      a = a.map2(b,plus).addError(err);
     } else if (level <= 11 && p.token("*")) {
-      a = star(a);
+      a = a.map(star);
+    } else if (level <= 11 && p.token("?")) {
+      let err = p.error(locale.warnRegexQuestionmark);
+      a = a.map((x) => plus(x,one)).addError(err);
     } else if (level <= 10 && "+*|?)".indexOf(p.peek()) == -1) {
       let b = parseRegexPrivate(p, 10);
-      if (b.type == "error") return b;
-      a = times(a, b);
+      a = a.map2(b,times);
     } else {
       break;
     }
@@ -168,10 +171,9 @@ function parseRegexPrivate(p : Parser, level : number) : SimpleRegex | ParseErro
   return a;
 }
 
-export function parseRegex(x : string) : SimpleRegex | ParseError {
+export function parseRegex(x : string) : ParseResult<SimpleRegex> {
   let parser = new Parser(x);
   let result = parseRegexPrivate(parser, 0);
-  if (result.type == "error") return result;
-  if (!parser.eof()) return parser.expected("end-of-input");
+  if (!parser.eof()) result.addError(parser.expected("end-of-input"));
   return result;
 }

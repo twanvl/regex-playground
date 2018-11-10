@@ -5,17 +5,30 @@ import {locale} from './localization';
 // -----------------------------------------------------------------------------
 
 export class ParseError {
-  type     : "error" = "error";
-  position : number;
-  message  : string;
-
-  constructor(message : string, position : number) {
-    this.message = message;
-    this.position = position;
-  }
+  constructor(public message : string, public position : number) {}
 
   toString() {
     return this.message +" at " + this.position;
+  }
+}
+
+export class ParseResult<A> {
+  constructor(public value : A, public errors : ParseError[] = []) {}
+
+  addError(err : ParseError) : ParseResult<A> {
+    this.errors.push(err);
+    return this;
+  }
+
+  failed() : boolean {
+    return this.errors.length > 0;
+  }
+
+  map<B> (f : (x : A) => B) : ParseResult<B> {
+    return new ParseResult(f(this.value), this.errors);
+  }
+  map2<B,C> (b : ParseResult<B>, f : (x : A, y : B) => C) : ParseResult<C> {
+    return new ParseResult(f(this.value, b.value), this.errors.concat(b.errors));
   }
 }
 
@@ -66,5 +79,9 @@ export class Parser {
     } else {
       return this.peek();
     }
+  }
+
+  error(message : string) : ParseError {
+    return new ParseError(message, this.position);
   }
 }
