@@ -21,7 +21,7 @@ export type Locale =
 export const english : Locale =
   { expected: (want,got) => "Expected " + want + " instead of " + got
   , endOfInput: "end-of-input"
-  , regularExpression: "regular expression"
+  , regularExpression: "Regular expression"
   , warnRegexQuestionmark: "The '?' symbol in regular expressions is not standard, use '+1' instead."
   , warnRegexPipe:         "The '|' symbol in regular expressions is not standard, use '+' instead."
   };
@@ -33,7 +33,7 @@ export const english : Locale =
 export const dutch : Locale =
   { expected: (want,got) => want + " verwacht in plaats van " + got
   , endOfInput: "einde van de invoer"
-  , regularExpression: "reguliere expressie"
+  , regularExpression: "Reguliere expressie"
   , warnRegexQuestionmark: "Gebruik in plaats daarvan '+1' in plaats van '?'."
   , warnRegexPipe:         "Gebruik in plaats daarvan '+' in plaats van '|'."
   };

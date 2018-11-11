@@ -1,0 +1,15 @@
+.railroad {
+  font: serif;
+  font-size: 16px;
+  display: block;
+  /*transition: width .1s, height .1s;*/
+}
+.railroad .node:hover {
+  fill: #ddf;
+}
+.railroad * {
+  /*transition: stroke .1s, x .1s, x1 .1s, x2 .1s, y1 .1s, y2 .1s, d .1s, transform .1s;*/
+}
+body {
+  margin-top: 1em;
+}
