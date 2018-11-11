@@ -96,13 +96,19 @@ function railroadLayout(re : RE.SimpleRegex) : Part {
       const radius = 10;
       const width = layouts.reduce((w,a) => Math.max(w,a.width), cellWidth) + 2*xspace;
       const height = layouts.reduce((h,a) => h + a.height, 0) + 2*yspace;
-      const baseline = height / 2;
-      let topInner = yspace - baseline;
+      // baselines relative to our top
+      let topInner = 0;
+      for(let part of layouts) {
+        part.baseline += topInner;
+        topInner += part.height;
+      }
+      // put baseline midway between first and last baselines
+      const baseline = layouts.length == 0 ? 0 : (layouts[0].baseline + layouts[layouts.length-1].baseline) / 2;
       let bodyParts : React.ReactNode[] = [];
       for(const part of layouts) {
         let leftInner = (width-part.width)/2;
         let rightInner = leftInner + part.width;
-        let yInner = topInner + part.baseline;
+        let yInner = part.baseline - baseline;
         bodyParts.push(<g transform={translate(leftInner, yInner)}>{part.body}</g>);
         bodyParts.push(<path d={pathForkRoad(0,0, xspace,yInner, leftInner, radius)} fill="none"/>);
         bodyParts.push(<path d={pathForkRoad(width,0, width-xspace,yInner, rightInner, radius)} fill="none"/>);
