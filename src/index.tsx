@@ -10,6 +10,7 @@ import {setLocale,dutch,english, locale} from './lib/localization';
 import RailroadDiagram from './components/RailroadDiagram';
 import AutomatonDiagram from './components/AutomatonDiagram';
 import RailroadDiagramSVG from './components/RailroadDiagramSVG';
+import RegexToNFADerivation from './components/RegexToNfaDerivation';
 
 //setLocale(dutch);
 
@@ -82,6 +83,7 @@ class REEditor extends React.Component<EditorProps,EditorState> {
           <div>Word: {RE.makeWord(re.value)}</div>
           <div>DFA: {NFA.showNFA(DFA.dfaToNfa(dfa))}</div>
           <div>DFA: <AutomatonDiagram automaton={DFA.dfaToNfa(dfa)} /></div>
+          <RegexToNFADerivation regex={re.value} />
         </div>
       );
       //

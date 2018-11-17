@@ -71,7 +71,7 @@ function railroadLayout(re : RE.SimpleRegex) : Part {
         <g className="node">
           <line x1={0} y1={0} x2={cellWidth} y2={0} />
           <circle cx={cellWidth/2} cy={0} r={radius} stroke='#006' fill='#fff' />
-          <text x={cellWidth/2} y={0} stroke="none" fill="#000" textAnchor="middle" className="label" dominantBaseline="central">{re.char}</text>
+          <text x={cellWidth/2} y={0} stroke="none" fill="#000" textAnchor="middle" className="node-label" dominantBaseline="central">{re.char}</text>
         </g>
       )};
     }

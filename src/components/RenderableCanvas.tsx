@@ -8,6 +8,7 @@ export interface Renderable {
   width: number;
   height: number;
   render: (ctx : CanvasRenderingContext2D, x : number, y : number) => void;
+  className?: string;
 }
 
 export class RenderableCanvas extends React.Component<Renderable> {
@@ -19,7 +20,7 @@ export class RenderableCanvas extends React.Component<Renderable> {
   }
 
   render() {
-    return <canvas ref={this.canvas} width={this.props.width} height={this.props.height}/>;
+    return <canvas ref={this.canvas} width={this.props.width} height={this.props.height} className={this.props.className} />;
   }
 
   componentDidMount() {

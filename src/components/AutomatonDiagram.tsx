@@ -43,7 +43,9 @@ function automatonRender(props : AutomatonDiagramProps) : Renderable {
         ctx.arc(x,y, nodeRadiusFinal, 0,2*Math.PI);
         ctx.stroke();
       }
-      ctx.fillText(node.label, x,y);
+      if (props.nodeLabels) {
+        ctx.fillText(node.label, x,y);
+      }
     }
 
     function drawCurvedEdge(curve : BezierCurve, label : string = "") {
@@ -80,7 +82,8 @@ function automatonRender(props : AutomatonDiagramProps) : Renderable {
     function drawEdge(p1 : vec2, p2 : vec2, r1 : number, r2 : number, label : string = "") {
       if (true) {
         // bezier curve between centers of nodes, clipped to the node edges
-        let angle : vec2 = [0.3,0.25];
+        let d = vec2.distance(p1,p2) / scale;
+        let angle : vec2 = [0.3 - 0.05*d, 0.25 + 0.05*d];
         let dir = vec2.sub(p2,p1);
         let pa = vec2.addInDirection(p1, dir, angle);
         let pb = vec2.addInDirection(p1, dir, vec2.add([1,0],vec2.mul([-1,1],angle)));
@@ -130,12 +133,16 @@ function automatonRender(props : AutomatonDiagramProps) : Renderable {
 
 interface AutomatonDiagramProps {
   automaton: Automaton | NFA.NFA;
+  nodeLabels: boolean;
 }
 
 export default class AutomatonDiagram extends React.Component<AutomatonDiagramProps> {
+  static defaultProps = {
+    nodeLabels: true
+  };
   render() {
     let render = automatonRender(this.props);
-    return <RenderableCanvas {...render}/>;
+    return <RenderableCanvas {...render} className="automaton" />;
   }
 }
 

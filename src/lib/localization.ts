@@ -12,6 +12,9 @@ export type Locale =
   , warnRegexPipe: string
 
   // simple languages
+
+  // other
+  , number: (a : number) => string
   };
 
 // -----------------------------------------------------------------------------
@@ -24,6 +27,15 @@ export const english : Locale =
   , regularExpression: "Regular expression"
   , warnRegexQuestionmark: "The '?' symbol in regular expressions is not standard, use '+1' instead."
   , warnRegexPipe:         "The '|' symbol in regular expressions is not standard, use '+' instead."
+  , number: (n) => {
+    if (n == 0) return "zero";
+    if (n == 1) return "one";
+    if (n == 2) return "two";
+    if (n == 3) return "three";
+    if (n == 4) return "four";
+    if (n == 5) return "five";
+    return n.toString();
+  }
   };
 
 // -----------------------------------------------------------------------------
@@ -36,6 +48,7 @@ export const dutch : Locale =
   , regularExpression: "Reguliere expressie"
   , warnRegexQuestionmark: "Gebruik in plaats daarvan '+1' in plaats van '?'."
   , warnRegexPipe:         "Gebruik in plaats daarvan '+' in plaats van '|'."
+  , number: (n) => n.toString()
   };
 
 // -----------------------------------------------------------------------------

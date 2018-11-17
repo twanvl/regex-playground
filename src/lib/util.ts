@@ -72,6 +72,9 @@ export namespace vec2 {
   export function distanceSquared(a : vec2, b : vec2) : number {
     return normSquared(sub(a,b));
   }
+  export function distance(a : vec2, b : vec2) : number {
+    return norm(sub(a,b));
+  }
   export function dot(a : vec2, b : vec2) : number {
     return a[0]*b[0] + a[1]*b[1];
   }

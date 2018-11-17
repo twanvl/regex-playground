@@ -1,5 +1,5 @@
 .railroad {
-  font: serif;
+  font-family: serif;
   font-size: 16px;
   display: block;
   /*transition: width .1s, height .1s;*/
@@ -9,6 +9,12 @@
 }
 .railroad * {
   /*transition: stroke .1s, x .1s, x1 .1s, x2 .1s, y1 .1s, y2 .1s, d .1s, transform .1s;*/
+}
+.automaton {
+  display: block;
+}
+.nfa-derivation {
+  border-left: 4px solid #cdf;
 }
 body {
   margin-top: 1em;
