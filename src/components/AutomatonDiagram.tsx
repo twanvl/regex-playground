@@ -80,6 +80,9 @@ function automatonRender(props : AutomatonDiagramProps) : Renderable {
     }
 
     function drawEdge(p1 : vec2, p2 : vec2, r1 : number, r2 : number, label : string = "") {
+      if (p1 === undefined || p2 === undefined) {
+        throw "bork";
+      }
       if (true) {
         // bezier curve between centers of nodes, clipped to the node edges
         let d = vec2.distance(p1,p2) / scale;

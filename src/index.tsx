@@ -2,7 +2,7 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 
 import './style.css';
-import * as RE from './lib/simpleRegex';
+import * as RE from './lib/regex';
 import * as NFA from './lib/nfa';
 import * as DFA from './lib/dfa';
 import {ParseError, ParseResult} from './lib/parser';
@@ -52,7 +52,7 @@ interface EditorProps {
 }
 interface EditorState {
   unparsed: string;
-  parsed?:  ParseResult<RE.SimpleRegex>;
+  parsed?:  ParseResult<RE.Regex>;
 }
 class REEditor extends React.Component<EditorProps,EditorState> {
   /*state : State = {

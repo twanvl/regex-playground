@@ -1,5 +1,5 @@
 import {Renderable,RenderableCanvas} from './RenderableCanvas';
-import * as RE from '../lib/simpleRegex';
+import * as RE from '../lib/regex';
 import * as React from 'react';
 
 // -----------------------------------------------------------------------------
@@ -27,29 +27,11 @@ function drawForkRoad(ctx : CanvasRenderingContext2D, x1 : number, y1 : number, 
   ctx.arcTo(xm,y2, x2,y2, radius);
 }
 
-function railroadLayout(re : RE.SimpleRegex) : RailroadRenderable {
+function railroadLayout(re : RE.Regex) : RailroadRenderable {
   const rowHeight = 30;
   const cellWidth = 50;
   const crossSize = 8;
   switch (re.type) {
-    case "zero": return {width: cellWidth, height: rowHeight, baseline: rowHeight/2, render: (ctx,x,y) => {
-      ctx.beginPath();
-      ctx.moveTo(x,y);
-      ctx.lineTo(x+5,y);
-      ctx.moveTo(x+cellWidth-5,y);
-      ctx.lineTo(x+cellWidth,y);
-      ctx.moveTo(x+cellWidth/2-crossSize,y-crossSize);
-      ctx.lineTo(x+cellWidth/2+crossSize,y+crossSize);
-      ctx.moveTo(x+cellWidth/2-crossSize,y+crossSize);
-      ctx.lineTo(x+cellWidth/2+crossSize,y-crossSize);
-      ctx.stroke();
-    }};
-    case "one": return {width:cellWidth, height: rowHeight, baseline: rowHeight/2, render: (ctx,x,y) => {
-      ctx.beginPath();
-      ctx.moveTo(x,y);
-      ctx.lineTo(x+cellWidth,y);
-      ctx.stroke();
-    }};
     case "char": {
       const rowHeight = 40;
       const center = cellWidth / 2;
@@ -72,24 +54,34 @@ function railroadLayout(re : RE.SimpleRegex) : RailroadRenderable {
         ctx.fillText(re.char, x+center,y);
       }};
     }
-    case "times": {
-      const a = railroadLayout(re.a);
-      const b = railroadLayout(re.b);
-      const width = a.width + b.width;
-      const baseline = Math.max(a.baseline, b.baseline);
-      const height = baseline + Math.max(a.height-a.baseline, b.height-b.baseline);
+    case "product": {
+      const layouts = re.children.map(railroadLayout);
+      const width    = layouts.reduce((w,a) => w + a.width, 0);
+      const baseline = layouts.reduce((h,a) => Math.max(h,a.baseline), rowHeight / 2);
+      const height   = layouts.reduce((h,a) => Math.max(h,a.height-a.baseline), rowHeight / 2) + baseline;
       return {width,height,baseline, render: (ctx,x,y) => {
-        if (false) {
-          ctx.fillStyle = 'black';
-          ctx.fillRect(x+a.width-2,y-2,4,4);
+        for (const a of layouts) {
+          a.render(ctx,x,y);
+          x += a.width;
         }
-        a.render(ctx,x,y);
-        b.render(ctx,x+a.width,y);
       }};
     }
-    case "plus": {
-      const parts = RE.getSumParts(re);
-      const layouts = parts.map(railroadLayout);
+    case "sum": {
+      if (re.children.length == 0) {
+        return {width: cellWidth, height: rowHeight, baseline: rowHeight/2, render: (ctx,x,y) => {
+          ctx.beginPath();
+          ctx.moveTo(x,y);
+          ctx.lineTo(x+5,y);
+          ctx.moveTo(x+cellWidth-5,y);
+          ctx.lineTo(x+cellWidth,y);
+          ctx.moveTo(x+cellWidth/2-crossSize,y-crossSize);
+          ctx.lineTo(x+cellWidth/2+crossSize,y+crossSize);
+          ctx.moveTo(x+cellWidth/2-crossSize,y+crossSize);
+          ctx.lineTo(x+cellWidth/2+crossSize,y-crossSize);
+          ctx.stroke();
+        }};
+      }
+      const layouts = re.children.map(railroadLayout);
       const xspace = 20;
       const yspace = 0;
       const radius = 10;
@@ -115,7 +107,7 @@ function railroadLayout(re : RE.SimpleRegex) : RailroadRenderable {
       }};
     }
     case "star": {
-      const a = railroadLayout(re.a);
+      const a = railroadLayout(re.child);
       const xspace = 20;
       const yspace = 20;
       const radius = 10;
@@ -149,7 +141,7 @@ function railroadLayout(re : RE.SimpleRegex) : RailroadRenderable {
   }
 }
 
-function railroadRender(x : RE.SimpleRegex) : Renderable {
+function railroadRender(x : RE.Regex) : Renderable {
   const layout = railroadLayout(x);
   const circSize = 3;
   const circSpace = 10;
@@ -170,7 +162,7 @@ function railroadRender(x : RE.SimpleRegex) : Renderable {
 }
 
 interface RailroadDiagramProps {
-  regex : RE.SimpleRegex;
+  regex : RE.Regex;
 }
 
 export default class RailroadDiagram extends React.Component<RailroadDiagramProps> {

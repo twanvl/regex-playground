@@ -109,10 +109,11 @@ function buildDFA<A,B>(spec : BuildDFASpec<A,B>) : GenDFA<B> {
   let nodes : Node<B>[] = [];
   let queue : A[] = [];
   let queuePos = 0;
-  function makeOrGet(info : A) {
+  function makeOrGet(info : A) : number {
     let key = spec.key(info);
-    if (ids.has(key)) {
-      return ids.get(key)!;
+    let id = ids.get(key);
+    if (id !== undefined) {
+      return id;
     } else {
       let id = nodes.length + queue.length - queuePos;
       queue.push(info);
